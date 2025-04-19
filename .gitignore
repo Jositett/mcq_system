@@ -1,0 +1,77 @@
+# =========================
+# Global
+# =========================
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Logs
+*.log
+
+# Environment Variables
+.env
+
+# Node modules
+node_modules/
+
+# Python Virtual Environment
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Backup files
+*.bak
+*.tmp
+*.swp
+
+# Testing output
+htmlcov/
+coverage.xml
+.pytest_cache/
+
+# =========================
+# Backend (FastAPI app)
+# =========================
+# Database (SQLite if used)
+*.sqlite3
+*.db
+
+# Migrations (if using Alembic later)
+backend/alembic/
+
+# =========================
+# Frontend (React Vite app)
+# =========================
+# Vite output
+frontend/dist/
+
+# Local asset uploads (optional if storing user uploads locally)
+frontend/public/assets/uploads/
+
+# Tailwind JIT cache
+frontend/.tailwind/
+
+# =========================
+# Others
+# =========================
+# System specific
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msm
+*.msp
+*.lnk
