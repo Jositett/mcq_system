@@ -1,6 +1,7 @@
 # MCQ Test & Attendance System
 
 ## 📚 Core Features
+
 | Feature | Description |
 |:--------|:------------|
 | **Authentication** | Secure role-based login (Admin / Instructor / Student) with JWT + OAuth2 |
@@ -14,6 +15,7 @@
 | **Result Analytics** | Graphical visualization of test performance and attendance history |
 
 ## 🛠 Technology Stack
+
 | Layer | Technology |
 |:-----|:------------|
 | Backend | FastAPI (Python 3.11+), SQLAlchemy ORM |
@@ -51,10 +53,10 @@ mcq_system/
 │   └── package.json
 └── README.md
 
-
 ## 🚀 Development Setup
 
 ### Backend
+
 bash
 cd backend
 python -m venv venv
@@ -62,13 +64,12 @@ source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 uvicorn app.main:app --reload
 
-
 ### Frontend
+
 bash
 cd frontend
 npm install
 npm run dev
-
 
 ## 📝 .env Sample
 
@@ -76,10 +77,10 @@ DATABASE_URL=postgresql://postgres:swe@localhost/mcq_db
 SECRET_KEY=yourverysecuresecret
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
-FRONTEND_URL=http://localhost:5173
-
+FRONTEND_URL=<http://localhost:5173>
 
 ## ✅ Testing Checklist
+
 | Area | Task | Status |
 |:-----|:-----|:------|
 | Authentication | Registration/Login | [x] |
@@ -98,6 +99,7 @@ FRONTEND_URL=http://localhost:5173
 | File Upload | Profile Pictures | [ ] |
 
 ## 🔮 Future Enhancements (Post-Launch)
+
 - **Email notifications** for tests, birthdays
 - **SMS notifications** (Twilio or local provider)
 - **WebSocket live test monitoring** for instructors
@@ -106,6 +108,7 @@ FRONTEND_URL=http://localhost:5173
 - **Audit Logging** (Security events, Admin logs)
 
 ## 📈 Development Phases (Recommended)
+
 1. **Backend Foundation:** Auth, User, Attendance, Tests
 2. **Frontend Core:** Login, Dashboards, Attendance UI, Test UI
 3. **Advanced Features:** Theory marking, Birthday reminders, Profile Pictures
