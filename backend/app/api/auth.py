@@ -39,20 +39,31 @@ class LoginRequest(BaseModel):
 
 @router.post(
     '/login',
-    response_model=Token,
     tags=["Auth"],
     summary="Login and get JWT token",
     description="Authenticate with username and password to receive a JWT token.",
     responses={
-        200: {"description": "Login successful, JWT token returned."},
+        200: {"description": "Login successful, JWT token and user info returned."},
         401: {"description": "Invalid credentials."}
     },
-    response_description="JWT access token."
+    response_description="JWT access token and user info."
 )
 def login(form_data: LoginRequest, db: Session = Depends(get_db)):
-    """Login and get JWT token."""
+    """Login and get JWT token and user info."""
     user = user_service.authenticate_user(db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(status_code=401, detail="Invalid credentials")
     access_token = security.create_access_token({"sub": user.username, "role": user.role})
-    return Token(access_token=access_token, token_type="bearer")
+    # Return both token and user info
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "full_name": user.full_name,
+            "is_active": user.is_active,
+            "role": user.role
+        }
+    }

@@ -65,3 +65,24 @@ def list_tests(db: Session = Depends(get_db)):
         {"id": t.id, "name": t.name, "batch_id": t.batch_id, "scheduled_at": t.scheduled_at} for t in tests
     ]
 
+from app.schemas.bulk_question import BulkQuestionUploadRequest, BulkQuestionUploadResponse
+
+@router.post(
+    '/questions/bulk',
+    tags=["Tests"],
+    summary="Bulk add questions to the question pool (admin only)",
+    description="Bulk upload questions to the question pool. Admin only.",
+    response_model=BulkQuestionUploadResponse,
+    responses={
+        200: {"description": "Bulk question upload results."},
+        403: {"description": "Admins only."}
+    },
+    response_description="Bulk question upload results."
+)
+def bulk_add_questions_admin(
+    req: BulkQuestionUploadRequest,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_role("admin"))
+):
+    results = test_service.bulk_question_upload(db, req.questions, instructor_id=None)
+    return {"results": results}

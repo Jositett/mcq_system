@@ -29,6 +29,29 @@ def list_users(db: Session = Depends(get_db), current_user: models.User = Depend
     users = user_service.list_users(db)
     return users
 
+from app.schemas.bulk_student import BulkStudentUploadRequest, BulkStudentUploadResponse
+from app.services import student_service
+
+@router.post(
+    '/batches/students/bulk',
+    tags=["Users"],
+    summary="Bulk add students to any batch (admin only)",
+    description="Bulk upload students to any batch. Admin only.",
+    response_model=BulkStudentUploadResponse,
+    responses={
+        200: {"description": "Bulk student upload results."},
+        403: {"description": "Admins only."}
+    },
+    response_description="Bulk student upload results."
+)
+def bulk_add_students_admin(
+    req: BulkStudentUploadRequest,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_role("admin"))
+):
+    results = student_service.bulk_student_upload(db, req.students, instructor_id=None)
+    return {"results": results}
+
 @router.get(
     '/{user_id}',
     response_model=UserResponse,

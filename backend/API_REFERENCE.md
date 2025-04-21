@@ -149,4 +149,126 @@
 
 ---
 
+### Bulk Student Upload (Admin)
+
+- **Endpoint:** `POST /api/batches/students/bulk`
+- **Permissions:** Admin only (JWT required)
+- **Request Body:**
+
+  ```json
+  {
+    "students": [
+      {
+        "full_name": "John Doe",
+        "email": "johndoe@example.com",
+        "roll_number": "12345",
+        "dob": "2000-01-01",
+        "batch_name": "Batch A"
+      },
+      ...
+    ]
+  }
+  ```
+
+- **Response:**
+
+  ```json
+  {
+    "results": [
+      {
+        "full_name": "John Doe",
+        "email": "johndoe@example.com",
+        "batch_name": "Batch A",
+        "success": true,
+        "error": null
+      },
+      {
+        "full_name": "Jane Smith",
+        "email": "janesmith@example.com",
+        "batch_name": "Batch B",
+        "success": false,
+        "error": "User with this email already exists"
+      }
+    ]
+  }
+  ```
+
+- **Notes:**
+  - Each student is processed individually; errors are reported per row.
+  - Batches are created if they do not exist.
+
+---
+
+### Bulk Student Upload (Instructor)
+
+- **Endpoint:** `POST /api/instructors/{instructor_id}/batches/students/bulk`
+- **Permissions:** Instructor only (JWT required, only for their own ID)
+- **Request Body:** Same as admin endpoint above
+- **Response:** Same as admin endpoint above
+- **Notes:**
+  - Instructors can only add students to batches they manage (by name).
+  - Batches are created for the instructor if they do not exist.
+
+---
+
+### Bulk Question Upload (Admin)
+
+- **Endpoint:** `POST /api/tests/questions/bulk`
+- **Permissions:** Admin only (JWT required)
+- **Request Body:**
+
+  ```json
+  {
+    "questions": [
+      {
+        "test_name": "Midterm 1",
+        "question_text": "What is 2+2?",
+        "question_type": "mcq",
+        "options": "[\"2\",\"3\",\"4\",\"5\"]",
+        "correct_answer": "4"
+      },
+      ...
+    ]
+  }
+  ```
+
+- **Response:**
+
+  ```json
+  {
+    "results": [
+      {
+        "question_text": "What is 2+2?",
+        "test_name": "Midterm 1",
+        "success": true,
+        "error": null
+      },
+      {
+        "question_text": "What is the capital of France?",
+        "test_name": "Midterm 1",
+        "success": false,
+        "error": "Test not found. Please create the test first."
+      }
+    ]
+  }
+  ```
+
+- **Notes:**
+  - Each question is processed individually; errors are reported per row.
+  - The referenced test must already exist.
+
+---
+
+### Bulk Question Upload (Instructor)
+
+- **Endpoint:** `POST /api/instructors/{instructor_id}/tests/questions/bulk`
+- **Permissions:** Instructor only (JWT required, only for their own ID)
+- **Request Body:** Same as admin endpoint above
+- **Response:** Same as admin endpoint above
+- **Notes:**
+  - Instructors can only add questions to tests they manage (by name).
+  - The referenced test must already exist and be associated with the instructor.
+
+---
+
 ## See `/docs` or `/redoc` for full OpenAPI schema
