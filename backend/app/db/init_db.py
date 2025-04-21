@@ -8,7 +8,7 @@ import asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
-from app.db.migrations import run_migrations, run_migrations_async
+from app.db.migrations_core import run_migrations, run_migrations_async
 from app.core.settings import settings
 from app.db.session import get_db, get_async_db
 

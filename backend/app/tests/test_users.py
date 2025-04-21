@@ -1,21 +1,14 @@
 import pytest
-from fastapi.testclient import TestClient
+from httpx import AsyncClient
 from app.main import app
-from app.db.session import engine, SessionLocal
-from app.db import models
-
-models.Base.metadata.create_all(bind=engine)
-client = TestClient(app)
 
 @pytest.fixture(autouse=True)
-def clear_users_table():
-    db = SessionLocal()
-    db.query(models.User).delete()
-    db.commit()
-    db.close()
+async def clear_users_table():
+    async with AsyncSessionLocal() as session:
+        await session.execute("DELETE FROM users")
+        await session.commit()
 
-def get_admin_token():
-    # Register admin if not exists
+async def get_admin_token(async_client: AsyncClient):
     user_data = {
         "username": "adminuser",
         "email": "adminuser@example.com",
@@ -23,20 +16,21 @@ def get_admin_token():
         "role": "admin",
         "password": "adminpass"
     }
-    client.post("/api/auth/register", json=user_data)
+    await async_client.post("/api/auth/register", json=user_data)
     login_data = {"username": "adminuser", "password": "adminpass"}
-    response = client.post("/api/auth/login", json=login_data)
+    response = await async_client.post("/api/auth/login", json=login_data)
     return response.json()["access_token"]
 
-def test_admin_can_list_users():
-    token = get_admin_token()
-    response = client.get("/api/users/", headers={"Authorization": f"Bearer {token}"})
+@pytest.mark.asyncio
+async def test_admin_can_list_users(async_client: AsyncClient):
+    token = await get_admin_token(async_client)
+    response = await async_client.get("/api/users/", headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == 200
     assert isinstance(response.json(), list)
 
-def test_admin_can_create_and_delete_user():
-    token = get_admin_token()
-    # Create user
+@pytest.mark.asyncio
+async def test_admin_can_create_and_delete_user(async_client: AsyncClient):
+    token = await get_admin_token(async_client)
     user_data = {
         "username": "studentuser",
         "email": "studentuser@example.com",
@@ -44,12 +38,10 @@ def test_admin_can_create_and_delete_user():
         "role": "student",
         "password": "studentpass"
     }
-    client.post("/api/auth/register", json=user_data)
-    # Get user list and find new user id
-    users = client.get("/api/users/", headers={"Authorization": f"Bearer {token}"}).json()
+    await async_client.post("/api/auth/register", json=user_data)
+    users = (await async_client.get("/api/users/", headers={"Authorization": f"Bearer {token}"})).json()
     user = next((u for u in users if u["username"] == "studentuser"), None)
     assert user is not None
-    # Delete user
-    response = client.delete(f"/api/users/{user['id']}", headers={"Authorization": f"Bearer {token}"})
+    response = await async_client.delete(f"/api/users/{user['id']}", headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == 200
     assert response.json()["detail"] == "User deleted"

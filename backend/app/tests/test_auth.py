@@ -1,28 +1,21 @@
 import pytest
-from fastapi.testclient import TestClient
+from httpx import AsyncClient
 from app.main import app
-from app.db.session import engine, SessionLocal
-from app.db import models
-
-# Ensure test DB tables are created
-models.Base.metadata.create_all(bind=engine)
-
-client = TestClient(app)
 
 @pytest.fixture(autouse=True)
-def clear_users_table():
-    db = SessionLocal()
-    db.query(models.User).delete()
-    db.commit()
-    db.close()
+async def clear_users_table():
+    async with AsyncSessionLocal() as session:
+        await session.execute("DELETE FROM users")
+        await session.commit()
 
-def test_health_check():
-    response = client.get("/health")
+@pytest.mark.asyncio
+async def test_health_check(async_client: AsyncClient):
+    response = await async_client.get("/health")
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
 
-def test_register_and_login():
-    # Register
+@pytest.mark.asyncio
+async def test_register_and_login(async_client: AsyncClient):
     user_data = {
         "username": "testadmin",
         "email": "testadmin@example.com",
@@ -30,10 +23,9 @@ def test_register_and_login():
         "role": "admin",
         "password": "testpass123"
     }
-    response = client.post("/api/auth/register", json=user_data)
+    response = await async_client.post("/api/auth/register", json=user_data)
     assert response.status_code == 200
-    # Login
     login_data = {"username": "testadmin", "password": "testpass123"}
-    response = client.post("/api/auth/login", json=login_data)
+    response = await async_client.post("/api/auth/login", json=login_data)
     assert response.status_code == 200
     assert "access_token" in response.json()

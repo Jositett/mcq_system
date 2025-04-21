@@ -1,20 +1,14 @@
 import pytest
-from fastapi.testclient import TestClient
+from httpx import AsyncClient
 from app.main import app
-from app.db.session import engine, SessionLocal
-from app.db import models
-
-models.Base.metadata.create_all(bind=engine)
-client = TestClient(app)
 
 @pytest.fixture(autouse=True)
-def clear_users_table():
-    db = SessionLocal()
-    db.query(models.User).delete()
-    db.commit()
-    db.close()
+async def clear_users_table():
+    async with AsyncSessionLocal() as session:
+        await session.execute("DELETE FROM tests")
+        await session.commit()
 
-def get_instructor_token():
+async def get_instructor_token(async_client: AsyncClient):
     user_data = {
         "username": "instructor2",
         "email": "instructor2@example.com",
@@ -22,12 +16,13 @@ def get_instructor_token():
         "role": "instructor",
         "password": "instructorpass2"
     }
-    client.post("/api/auth/register", json=user_data)
+    await async_client.post("/api/auth/register", json=user_data)
     login_data = {"username": "instructor2", "password": "instructorpass2"}
-    response = client.post("/api/auth/login", json=login_data)
+    response = await async_client.post("/api/auth/login", json=login_data)
     return response.json()["access_token"]
 
-def test_instructor_can_list_tests():
-    token = get_instructor_token()
-    response = client.get("/api/tests/", headers={"Authorization": f"Bearer {token}"})
+@pytest.mark.asyncio
+async def test_instructor_can_list_tests(async_client: AsyncClient):
+    token = await get_instructor_token(async_client)
+    response = await async_client.get("/api/tests/", headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == 200

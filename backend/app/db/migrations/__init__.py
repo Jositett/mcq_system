@@ -1,1 +1,1 @@
-from .migrations import run_migrations, run_migrations_async
+from app.db.migrations_core import run_migrations, run_migrations_async
