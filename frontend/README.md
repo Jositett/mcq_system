@@ -1,13 +1,17 @@
 # MCQ System Frontend
 
-A React-based frontend for the MCQ Test & Attendance System, supporting both light and dark themes.
+A React-based frontend for the MCQ Test & Attendance System, supporting both light and dark themes, fully modernized with TailwindCSS v4+ and Headless UI.
 
 ## Features
 
+- Modern, responsive UI (TailwindCSS v4+)
 - JWT authentication (login/register)
 - Student dashboard: face upload (with face-api.js), attendance check-in, attendance history
 - Instructor/admin dashboards
-- Light and dark mode toggle (theme persistence)
+- Dark/Light mode toggle (Tailwind's dark mode, persistent)
+- Accessible modals, dropdowns, etc. (Headless UI)
+- State management with Redux Toolkit
+- Error boundaries and improved user feedback
 
 ## Quickstart
 
@@ -15,16 +19,12 @@ A React-based frontend for the MCQ Test & Attendance System, supporting both lig
 
    ```sh
    npm install
-   # or
-   yarn install
    ```
 
 2. Start the dev server:
 
    ```sh
    npm run dev
-   # or
-   yarn dev
    ```
 
 3. Configure backend API URL and CORS as needed in `.env` or config files.
@@ -34,6 +34,10 @@ A React-based frontend for the MCQ Test & Attendance System, supporting both lig
 ## Tech Stack
 
 - React (with Vite)
-- MUI (Material UI) for UI and theming
+- TailwindCSS v4+ for all UI styling and theming
+- Headless UI for accessible, unstyled components
 - face-api.js for face recognition
 - axios for HTTP requests
+- Redux Toolkit for state management
+- Vite for build and dev server
+- Jest & React Testing Library for testing

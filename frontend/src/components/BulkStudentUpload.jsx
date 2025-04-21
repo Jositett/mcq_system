@@ -1,15 +1,25 @@
 import React, { useRef, useState } from 'react';
-import { Box, Button, Typography, Paper, Alert, CircularProgress, Link } from '@mui/material';
+import { useSelector } from 'react-redux';
 import Papa from 'papaparse';
 import { api } from '../api';
-import { useToast } from './ToastContext';
 
-export default function BulkStudentUpload({ token }) {
+export default function BulkStudentUpload() {
   const fileInput = useRef();
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const [preview, setPreview] = useState([]);
-  const showToast = useToast();
+  const [notification, setNotification] = useState({ show: false, message: '', type: '' });
+  
+  // Get auth token from Redux store
+  const { token } = useSelector(state => state.auth);
+
+  // Show notification
+  const showNotification = (message, type = 'success') => {
+    setNotification({ show: true, message, type });
+    setTimeout(() => {
+      setNotification({ show: false, message: '', type: '' });
+    }, 3000);
+  };
 
   const handleFile = (e) => {
     setError('');
@@ -34,43 +44,81 @@ export default function BulkStudentUpload({ token }) {
     setUploading(true);
     setError('');
     try {
-      await api.post('/batches/students/bulk', preview, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      showToast('Bulk student upload successful!', 'success');
+      await api.post('/batches/students/bulk', preview);
+      showNotification('Bulk student upload successful!', 'success');
       setPreview([]);
       fileInput.current.value = '';
     } catch (err) {
       setError(err.response?.data?.detail || 'Bulk upload failed');
-      showToast('Bulk upload failed', 'error');
+      showNotification('Bulk upload failed', 'error');
     } finally {
       setUploading(false);
     }
   };
 
   return (
-    <Box sx={{ mt: 2, maxWidth: 600 }}>
-      <Paper sx={{ p: 3, mb: 2 }}>
-        <Typography variant="h6" mb={1}>Bulk Add Students to Batches</Typography>
-        <Typography variant="body2" mb={2}>
-          Download the <Link href="/bulk_student_template.csv" target="_blank" rel="noopener">CSV template</Link> and fill in student details. Then upload the completed file below.
-        </Typography>
-        <input type="file" accept=".csv" ref={fileInput} onChange={handleFile} style={{ display: 'none' }} />
-        <Button variant="contained" onClick={() => fileInput.current.click()} disabled={uploading} sx={{ mr: 2 }}>Choose CSV</Button>
-        <Button variant="contained" color="success" onClick={handleUpload} disabled={!preview.length || uploading}>Upload</Button>
-        {uploading && <CircularProgress size={24} sx={{ ml: 2 }} />}
-        {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
-        {preview.length > 0 && (
-          <Box sx={{ mt: 2 }}>
-            <Typography variant="subtitle2">Preview ({preview.length} students):</Typography>
-            <ul style={{ maxHeight: 120, overflowY: 'auto' }}>
-              {preview.map((row, idx) => (
-                <li key={idx}>{row.full_name} ({row.email}) - Batch: {row.batch_name}</li>
-              ))}
-            </ul>
-          </Box>
+    <div className="mt-4 w-full max-w-3xl">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-4 transition-colors duration-200">
+        {/* Notification */}
+        {notification.show && (
+          <div className={`mb-4 p-3 rounded-md ${notification.type === 'success' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'}`}>
+            {notification.message}
+          </div>
         )}
-      </Paper>
-    </Box>
+        
+        <h2 className="text-xl font-semibold mb-2 text-gray-800 dark:text-white">Bulk Add Students to Batches</h2>
+        <p className="text-gray-600 dark:text-gray-300 mb-4">
+          Download the <a href="/bulk_student_template.csv" target="_blank" rel="noopener" className="text-blue-600 dark:text-blue-400 hover:underline">CSV template</a> and fill in student details. Then upload the completed file below.
+        </p>
+        
+        <input type="file" accept=".csv" ref={fileInput} onChange={handleFile} className="hidden" />
+        
+        <div className="flex flex-wrap gap-3 mb-4">
+          <button 
+            onClick={() => fileInput.current.click()} 
+            disabled={uploading}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+          >
+            Choose CSV
+          </button>
+          
+          <button 
+            onClick={handleUpload} 
+            disabled={!preview.length || uploading}
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+          >
+            Upload
+          </button>
+          
+          {uploading && (
+            <div className="ml-2 flex items-center">
+              <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-blue-500"></div>
+              <span className="ml-2 text-gray-600 dark:text-gray-300">Uploading...</span>
+            </div>
+          )}
+        </div>
+        
+        {error && (
+          <div className="mb-4 p-3 rounded-md bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200">
+            {error}
+          </div>
+        )}
+        
+        {preview.length > 0 && (
+          <div className="mt-4">
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Preview ({preview.length} students):</h3>
+            <div className="max-h-40 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-md p-2 bg-gray-50 dark:bg-gray-900/50">
+              <ul className="space-y-1">
+                {preview.map((row, idx) => (
+                  <li key={idx} className="text-sm text-gray-600 dark:text-gray-300">
+                    {row.full_name} ({row.email}) - Batch: {row.batch_name}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

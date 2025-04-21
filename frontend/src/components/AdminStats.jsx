@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Paper, Typography, CircularProgress, Alert, Grid } from '@mui/material';
-import axios from 'axios';
+import { useSelector } from 'react-redux';
+import { api } from '../api';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
-
-export default function AdminStats({ token }) {
+export default function AdminStats() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  
+  // Get auth token from Redux store
+  const { token } = useSelector(state => state.auth);
 
   useEffect(() => {
     async function fetchStats() {
@@ -15,7 +16,7 @@ export default function AdminStats({ token }) {
       setLoading(true);
       try {
         // Simulate stats: count users by role (since no dedicated endpoint)
-        const res = await axios.get(`${API_URL}/users/`, { headers: { Authorization: `Bearer ${token}` } });
+        const res = await api.get('/users/');
         const users = res.data;
         const stats = {
           total: users.length,
@@ -34,24 +35,41 @@ export default function AdminStats({ token }) {
   }, [token]);
 
   return (
-    <Box sx={{ mt: 2, width: '100%', maxWidth: 600 }}>
-      <Paper sx={{ p: 3, mb: 2 }}>
-        <Typography variant="h6" mb={2}>User Summary</Typography>
-        {loading && <CircularProgress />}
-        {error && <Alert severity="error">{error}</Alert>}
-        {stats && !loading && !error && (
-          <Grid container spacing={2}>
-            <Grid item xs={6}><Typography>Total Users:</Typography></Grid>
-            <Grid item xs={6}><Typography>{stats.total}</Typography></Grid>
-            <Grid item xs={6}><Typography>Students:</Typography></Grid>
-            <Grid item xs={6}><Typography>{stats.students}</Typography></Grid>
-            <Grid item xs={6}><Typography>Instructors:</Typography></Grid>
-            <Grid item xs={6}><Typography>{stats.instructors}</Typography></Grid>
-            <Grid item xs={6}><Typography>Admins:</Typography></Grid>
-            <Grid item xs={6}><Typography>{stats.admins}</Typography></Grid>
-          </Grid>
+    <div className="w-full max-w-4xl mx-auto mt-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-4 transition-colors duration-200">
+        <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">User Summary</h2>
+        
+        {/* Loading state */}
+        {loading && (
+          <div className="flex justify-center py-4">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 dark:border-blue-400"></div>
+          </div>
         )}
-      </Paper>
-    </Box>
+        
+        {/* Error state */}
+        {error && (
+          <div className="bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 p-3 rounded-md mb-4">
+            {error}
+          </div>
+        )}
+        
+        {/* Stats display */}
+        {stats && !loading && !error && (
+          <div className="grid grid-cols-2 gap-4">
+            <div className="text-gray-700 dark:text-gray-300 font-medium">Total Users:</div>
+            <div className="text-gray-900 dark:text-white">{stats.total}</div>
+            
+            <div className="text-gray-700 dark:text-gray-300 font-medium">Students:</div>
+            <div className="text-gray-900 dark:text-white">{stats.students}</div>
+            
+            <div className="text-gray-700 dark:text-gray-300 font-medium">Instructors:</div>
+            <div className="text-gray-900 dark:text-white">{stats.instructors}</div>
+            
+            <div className="text-gray-700 dark:text-gray-300 font-medium">Admins:</div>
+            <div className="text-gray-900 dark:text-white">{stats.admins}</div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

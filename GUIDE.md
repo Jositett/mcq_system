@@ -23,7 +23,7 @@
 | Layer | Technology |
 |:-----|:------------|
 | Backend | FastAPI (Python 3.11+), SQLAlchemy ORM |
-| Frontend | React.js (Vite + TailwindCSS + Headless UI) |
+| Frontend | React.js (Vite + TailwindCSS v4+ + Headless UI) |
 | Authentication | OAuth2 + JWT Tokens |
 | Database | PostgreSQL |
 | State Management | Redux Toolkit |
@@ -31,6 +31,163 @@
 | Charts | Recharts or Chart.js |
 | API Communication | Axios |
 | Real-time (Optional) | WebSockets for live status |
+
+---
+
+## 🚀 Frontend Modernization Plan
+
+- **UI Framework:** Fully migrated to TailwindCSS v4+ for all styling and theming. No Material UI (MUI) dependencies remain.
+- **Component Library:** Headless UI is used for accessible, unstyled components (modals, dropdowns, etc), styled with Tailwind.
+- **Design:** Modern, responsive layouts for all pages (auth, dashboard, admin, instructor, student views).
+- **Dark/Light Mode:** Implemented with Tailwind's `dark:` classes and toggled via HTML class.
+- **State Management:** Redux Toolkit for scalable state handling.
+- **API:** Axios for all backend communication.
+- **Testing:** Jest and React Testing Library for unit and integration tests.
+- **Build Tool:** Vite for fast development and hot-reload.
+
+### Migration Roadmap
+
+- [x] Authentication pages (login, register) refactored to TailwindCSS.
+- [x] Landing page modernized.
+- [x] Core dashboard and admin components migrated from MUI to Tailwind.
+- [x] All legacy MUI code removed.
+- [x] Error boundaries and user feedback improved.
+- [x] Tailwind v4+ and PostCSS config aligned with latest standards.
+- [ ] Ongoing: UX polish, accessibility, and responsive testing.
+
+---
+
+## 🛠️ Backend Guide (FastAPI)
+
+- **Framework:** FastAPI (Python 3.11+)
+- **Database:** PostgreSQL (async SQLAlchemy ORM)
+- **Authentication:** OAuth2 with JWT tokens
+- **Features:**
+  - User, instructor, and admin management
+  - MCQ/Test management (CRUD)
+  - Attendance with face recognition (API endpoints for check-in, review, and history)
+  - Manual grading for theory questions
+  - File uploads for profile images
+  - Analytics endpoints for dashboard stats
+- **Dev Setup:**
+  1. `python -m venv venv && venv\Scripts\activate`
+  2. `pip install -r requirements.txt`
+  3. Configure `.env` (DB url, JWT secret, etc)
+  4. `uvicorn app.main:app --reload`
+  5. Swagger UI: <http://localhost:8000/docs>
+- **Testing:** `pytest app/tests`
+- **Deployment:** Use Gunicorn/Uvicorn with HTTPS and CORS configured for production.
+
+---
+
+## 📂 Project Structure (Updated)
+
+```plaintext
+mcq_system/
+├── backend/
+│   ├── app/
+│   │   ├── api/               # Routers: auth, users, instructors, students, tests, attendance
+│   │   ├── core/              # Security, configuration, JWT utilities
+│   │   ├── db/                # SQLAlchemy models and database session management
+│   │   ├── services/          # Business logic: auth, tests, attendance, grading
+│   │   ├── schemas/           # Pydantic schemas (request/response validation)
+│   │   ├── utils/             # Helpers (e.g., file uploads, time utilities)
+│   │   └── main.py            # FastAPI app entry point
+│   └── requirements.txt
+├── frontend/
+│   ├── public/
+│   │   └── assets/            # Static files like logos and icons
+│   ├── src/
+│   │   ├── components/        # Reusable UI components (all TailwindCSS, Headless UI)
+│   │   ├── features/          # Redux slices for different features
+│   │   ├── pages/             # Login, Dashboards, Attendance, Tests, Profile
+│   │   ├── services/          # Axios API services
+│   │   └── App.jsx
+│   └── package.json
+└── GUIDE.md (this file)
+```
+
+---
+
+## 🔗 Useful Commands
+
+### Frontend
+
+```sh
+cd frontend
+npm install
+npm run dev
+```
+
+### Backend
+
+```sh
+cd backend
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
+
+---
+
+## 📢 Notes
+
+- All new UI and features should use TailwindCSS and Headless UI only.
+- No Material UI code should remain in any component.
+- For theming, use Tailwind's dark mode strategy.
+
+---
+
+## 📝 Next Steps & TODOs
+
+### Backend (Tasks)
+
+- [ ] **Enhance Test Coverage:**
+  - Write and improve unit/integration tests for all async services and API endpoints
+  - Ensure database, authentication, and edge cases are covered
+- [ ] **Add Rate Limiting:**
+  - Implement rate limiting middleware to prevent abuse of API endpoints
+- [ ] **CI/CD Setup:**
+  - Configure GitHub Actions or similar for automated testing and deployment
+- [ ] **Production Caching:**
+  - Integrate Redis for distributed caching (optional, for scaling)
+- [ ] **File Storage Service:**
+  - Abstract and implement file storage (local for dev, S3/Cloudinary for prod)
+- [ ] **API Documentation:**
+  - Continue refining OpenAPI docs and usage examples
+- [ ] **Database Migrations:**
+  - Finalize and document Alembic migration workflow
+- [ ] **Performance Optimization:**
+  - Profile and optimize async DB queries, caching, and bottlenecks
+- [ ] **Security Review:**
+  - Pen-test endpoints, review JWT handling, and RBAC enforcement
+
+### Frontend (Tasks)
+
+- [ ] **UX Polish & Accessibility:**
+  - Finalize responsive layouts, keyboard navigation, and ARIA labels
+- [ ] **Test Coverage:**
+  - Add/expand Jest and React Testing Library tests for all core components
+- [ ] **API Error Handling:**
+  - Improve user feedback on API/network errors
+- [ ] **Dashboard Analytics:**
+  - Enhance charts/graphs for results and attendance analytics
+- [ ] **Profile & File Uploads:**
+  - Integrate with backend file storage endpoints
+- [ ] **Real-time Features:**
+  - Add WebSocket support for live test/attendance updates (optional)
+- [ ] **Deployment:**
+  - Prepare Vite build for production, configure environment variables
+
+---
+
+**For details on development, see the relevant backend and frontend sections above.**
+
+### _Last updated: 2025-04-21_
+
+- Keep backend and frontend `.env` files up to date with API URLs and secrets.
+- See README.md in each subfolder for quickstart and troubleshooting.
 
 ---
 
@@ -172,7 +329,7 @@ CREATE TABLE attendance (
 
 ## 🚀 Development Setup
 
-### Backend
+### Backend (DEV)
 
 ```bash
 cd backend
@@ -182,7 +339,7 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 
-### Frontend
+### Frontend (DEV)
 
 ```bash
 cd frontend

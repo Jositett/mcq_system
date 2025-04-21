@@ -1,19 +1,21 @@
 import React from 'react';
-import { Box, Typography, Paper } from '@mui/material';
 import BulkStudentUpload from '../components/BulkStudentUpload';
 import BulkQuestionUpload from '../components/BulkQuestionUpload';
 
-export default function AdminBulkActions({ token }) {
+export default function AdminBulkActions() {
   return (
-    <Box sx={{ mt: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      <Paper sx={{ p: 4, minWidth: 320, mb: 3 }}>
-        <Typography variant="h5" mb={2}>Bulk Actions</Typography>
-        <Typography variant="body2" mb={2}>
+    <div className="mt-8 flex flex-col items-center w-full max-w-4xl mx-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 w-full transition-colors duration-200">
+        <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Bulk Actions</h1>
+        <p className="text-gray-600 dark:text-gray-300 mb-6">
           Use the forms below to upload students to batches or add questions to tests in bulk. Download the provided templates to prepare your data.
-        </Typography>
-        <BulkStudentUpload token={token} />
-        <BulkQuestionUpload token={token} />
-      </Paper>
-    </Box>
+        </p>
+        
+        <div className="space-y-8">
+          <BulkStudentUpload />
+          <BulkQuestionUpload />
+        </div>
+      </div>
+    </div>
   );
 }

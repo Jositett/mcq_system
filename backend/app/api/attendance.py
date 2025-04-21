@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from app.db.session import get_db
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.db.session import get_db, get_async_db
 import face_recognition
 import numpy as np
 from PIL import Image
@@ -14,7 +15,7 @@ from app.services import attendance_service, face_service
 from app.schemas.attendance import AttendanceCreate
 from app.core.dependencies import get_current_user, require_role
 from app.db import models
-from fastapi import Depends, Body
+from fastapi import Depends, Body, Path, Query
 from pydantic import BaseModel
 
 from typing import Optional
@@ -40,13 +41,28 @@ class FaceCheckinResponse(BaseModel):
     },
     response_description="Check-in record."
 )
-def check_in(attendance: AttendanceCreate, db: Session = Depends(get_db), current_user: models.User = Depends(require_role("student"))):
+async def check_in(
+    attendance: AttendanceCreate,
+    db: AsyncSession = Depends(get_async_db),
+    current_user: models.User = Depends(require_role("student"))
+):
     """Check in for attendance using student ID and date."""
-    if attendance.student_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Students can only check in for themselves.")
-    db_attendance = attendance_service.check_in(db, attendance)
+    # Verify the student is checking in for themselves
+    if not current_user.student or attendance.student_id != current_user.student.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Students can only check in for themselves."
+        )
+    
+    # Create attendance record
+    db_attendance = await attendance_service.check_in_async(db, attendance)
+    
     if not db_attendance:
-        raise HTTPException(status_code=400, detail="Already checked in for this date")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Already checked in for this date"
+        )
+    
     return {
         "id": db_attendance.id,
         "student_id": db_attendance.student_id,
@@ -67,9 +83,9 @@ def check_in(attendance: AttendanceCreate, db: Session = Depends(get_db), curren
     },
     response_description="Result of face check-in."
 )
-def face_checkin(
+async def face_checkin(
     payload: FaceCheckinRequest = Body(..., examples={"default": {"summary": "Base64 image example", "value": {"image": "data:image/png;base64,iVBORw..."}}}),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: models.User = Depends(require_role("student"))
 ):
     """Check in by submitting a face image using facial recognition."""
@@ -102,9 +118,9 @@ def face_checkin(
             raise HTTPException(status_code=400, detail="No image or embedding provided.")
         
         # Get all stored face images for comparison
-        stored_faces = face_service.FaceService.get_all_face_images(db)
+        stored_faces = await face_service.FaceService.get_all_face_images_async(db)
         if not stored_faces:
-            raise HTTPException(status_code=400, detail="No registered faces found in the system")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No registered faces found in the system")
         
         # Compare with stored face encodings
         best_match = None
@@ -130,9 +146,9 @@ def face_checkin(
             status="present"
         )
         
-        db_attendance = attendance_service.check_in(db, attendance)
+        db_attendance = await attendance_service.check_in_async(db, attendance)
         if not db_attendance:
-            raise HTTPException(status_code=400, detail="Already checked in for today")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Already checked in for today")
         
         return FaceCheckinResponse(
             success=True,
@@ -165,11 +181,23 @@ class AttendanceHistoryRecord(BaseModel):
     },
     response_description="List of attendance records."
 )
-def attendance_history(student_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(require_role("student"))):
+async def attendance_history(
+    student_id: int = Path(..., description="The ID of the student"),
+    db: AsyncSession = Depends(get_async_db),
+    current_user: models.User = Depends(get_current_user)
+):
     """Get attendance history for a student."""
-    if student_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Students can only view their own attendance.")
-    records = attendance_service.attendance_history(db, student_id)
+    # Check if current user is admin, instructor, or the student themselves
+    if current_user.role not in ["admin", "instructor"] and (
+        not current_user.student or current_user.student.id != student_id
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only view your own attendance unless you are an admin or instructor"
+        )
+    
+    records = await attendance_service.attendance_history_async(db, student_id)
+    
     return [
         {"id": r.id, "date": str(r.date), "status": r.status} for r in records
     ]

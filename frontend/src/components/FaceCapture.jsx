@@ -1,4 +1,5 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
+import Human from "human";
 
 /**
  * FaceCapture component
@@ -9,8 +10,33 @@ import React, { useRef, useState } from "react";
 export default function FaceCapture({ onCapture }) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
+  const overlayRef = useRef(null);
   const [streaming, setStreaming] = useState(false);
   const [captured, setCaptured] = useState(null);
+  const [detecting, setDetecting] = useState(false);
+  const [faceBox, setFaceBox] = useState(null);
+
+  const human = useRef(new Human()).current;
+
+  useEffect(() => {
+    let raf;
+    async function detectFace() {
+      if (videoRef.current && streaming) {
+        setDetecting(true);
+        const result = await human.detect(videoRef.current);
+        if (result.face && result.face.length > 0) {
+          const box = result.face[0].box;
+          setFaceBox(box);
+        } else {
+          setFaceBox(null);
+        }
+        setDetecting(false);
+        raf = requestAnimationFrame(detectFace);
+      }
+    }
+    if (streaming) detectFace();
+    return () => raf && cancelAnimationFrame(raf);
+  }, [streaming, human]);
 
   const startCamera = async () => {
     try {
@@ -27,6 +53,7 @@ export default function FaceCapture({ onCapture }) {
       videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
     }
     setStreaming(false);
+    setFaceBox(null);
   };
 
   const capturePhoto = () => {
@@ -36,24 +63,50 @@ export default function FaceCapture({ onCapture }) {
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     canvas.getContext("2d").drawImage(video, 0, 0);
-    const dataUrl = canvas.toDataURL("image/png");
+    let dataUrl = canvas.toDataURL("image/png");
+    // Optionally crop to face box
+    if (faceBox) {
+      const ctx = canvas.getContext("2d");
+      const { left, top, width, height } = faceBox;
+      const faceImg = ctx.getImageData(left, top, width, height);
+      const faceCanvas = document.createElement('canvas');
+      faceCanvas.width = width;
+      faceCanvas.height = height;
+      faceCanvas.getContext('2d').putImageData(faceImg, 0, 0);
+      dataUrl = faceCanvas.toDataURL("image/png");
+    }
     setCaptured(dataUrl);
     stopCamera();
     if (onCapture) onCapture(dataUrl);
   };
 
   return (
-    <div style={{ textAlign: "center" }}>
-      <h3>Facial Recognition Check-In</h3>
+    <div className="text-center">
+      <h3 className="text-lg font-semibold mb-2">Facial Recognition Check-In</h3>
       {!streaming && !captured && (
-        <button onClick={startCamera}>Start Camera</button>
+        <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" onClick={startCamera}>Start Camera</button>
       )}
       {streaming && (
-        <div>
-          <video ref={videoRef} autoPlay style={{ width: 320, height: 240, borderRadius: 8 }} />
+        <div className="relative inline-block">
+          <video ref={videoRef} autoPlay width={320} height={240} className="rounded" />
+          {/* Face box overlay */}
+          {faceBox && (
+            <div
+              className="absolute border-2 border-green-500"
+              style={{
+                left: faceBox.left,
+                top: faceBox.top,
+                width: faceBox.width,
+                height: faceBox.height,
+                pointerEvents: 'none',
+              }}
+            />
+          )}
           <br />
-          <button onClick={capturePhoto}>Capture Photo</button>
-          <button onClick={stopCamera} style={{ marginLeft: 8 }}>Cancel</button>
+          <button className="bg-green-600 text-white px-3 py-1 rounded mr-2 mt-2" onClick={capturePhoto} disabled={!faceBox || detecting}>
+            {detecting ? 'Detecting...' : 'Capture Photo'}
+          </button>
+          <button className="bg-gray-400 text-white px-3 py-1 rounded mt-2" onClick={stopCamera}>Cancel</button>
         </div>
       )}
       <canvas ref={canvasRef} style={{ display: "none" }} />

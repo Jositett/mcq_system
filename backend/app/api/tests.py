@@ -1,14 +1,16 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from app.db.session import get_db
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.db.session import get_db, get_async_db
 
 router = APIRouter()
 
 from app.services import test_service
 from app.schemas.test import TestCreate
 
-from app.core.dependencies import require_role
+from app.core.dependencies import require_role, get_current_user
 from app.db import models
+from fastapi import Path, Query
 
 from typing import List
 from pydantic import BaseModel
@@ -37,9 +39,26 @@ class TestCreateResponse(BaseModel):
     },
     response_description="Created test info."
 )
-def create_test(test: TestCreate, db: Session = Depends(get_db), current_user: models.User = Depends(require_role("instructor"))):
+async def create_test(
+    test: TestCreate,
+    db: AsyncSession = Depends(get_async_db),
+    current_user: models.User = Depends(require_role("instructor"))
+):
     """Create a new test (instructor only)."""
-    db_test = test_service.create_test(db, test)
+    # Check if instructor has access to the batch
+    if current_user.role != "admin" and current_user.instructor:
+        # Get instructor's batches
+        batches = await test_service.instructor_service.get_instructor_batches_async(db, current_user.instructor.id)
+        batch_ids = [batch.id for batch in batches]
+        
+        if test.batch_id not in batch_ids:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You can only create tests for your own batches"
+            )
+    
+    db_test = await test_service.create_test_async(db, test)
+    
     return TestCreateResponse(
         id=db_test.id,
         name=db_test.name,
@@ -58,9 +77,21 @@ def create_test(test: TestCreate, db: Session = Depends(get_db), current_user: m
     },
     response_description="List of tests."
 )
-def list_tests(db: Session = Depends(get_db)):
+async def list_tests(
+    db: AsyncSession = Depends(get_async_db),
+    current_user: models.User = Depends(get_current_user)
+):
     """List all tests."""
-    tests = test_service.list_tests(db)
+    # For instructors, only show their own tests
+    if current_user.role == "instructor" and current_user.instructor:
+        tests = await test_service.instructor_service.get_instructor_tests_async(db, current_user.instructor.id)
+    # For students, only show tests for their batch
+    elif current_user.role == "student" and current_user.student:
+        tests = await test_service.student_service.get_student_tests_async(db, current_user.student.id)
+    # For admins, show all tests
+    else:
+        tests = await test_service.list_tests_async(db)
+    
     return [
         {"id": t.id, "name": t.name, "batch_id": t.batch_id, "scheduled_at": t.scheduled_at} for t in tests
     ]
@@ -79,10 +110,11 @@ from app.schemas.bulk_question import BulkQuestionUploadRequest, BulkQuestionUpl
     },
     response_description="Bulk question upload results."
 )
-def bulk_add_questions_admin(
+async def bulk_add_questions_admin(
     req: BulkQuestionUploadRequest,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: models.User = Depends(require_role("admin"))
 ):
-    results = test_service.bulk_question_upload(db, req.questions, instructor_id=None)
+    """Bulk add questions to the question pool (admin only)."""
+    results = await test_service.bulk_question_upload_async(db, req.questions, instructor_id=None)
     return {"results": results}

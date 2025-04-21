@@ -1,16 +1,16 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from app.db.session import get_db
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.db.session import get_db, get_async_db
 from app.schemas.bulk_student import BulkStudentUploadRequest, BulkStudentUploadResponse
 from app.schemas.bulk_question import BulkQuestionUploadRequest, BulkQuestionUploadResponse
 
 router = APIRouter()
 
-from app.services import instructor_service
-from app.services import student_service
+from app.services import instructor_service, student_service, test_service
 from app.core.dependencies import require_role
 from app.db import models
-from fastapi import Depends
+from fastapi import Depends, Path, Query
 
 from typing import List
 from pydantic import BaseModel
@@ -38,11 +38,17 @@ class InstructorTestRecord(BaseModel):
     },
     response_description="List of batches."
 )
-def get_instructor_batches(instructor_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(require_role("instructor"))):
+async def get_instructor_batches(
+    instructor_id: int = Path(..., description="The ID of the instructor"),
+    db: AsyncSession = Depends(get_async_db),
+    current_user: models.User = Depends(require_role("instructor"))
+):
     """Get batches managed by an instructor."""
     if current_user.id != instructor_id:
-        raise HTTPException(status_code=403, detail="Instructors can only access their own batches.")
-    batches = instructor_service.get_instructor_batches(db, instructor_id)
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Instructors can only access their own batches.")
+    
+    batches = await instructor_service.get_instructor_batches_async(db, instructor_id)
+    
     return [
         {"id": b.id, "name": b.name, "instructor_id": b.instructor_id} for b in batches
     ]
@@ -59,11 +65,17 @@ def get_instructor_batches(instructor_id: int, db: Session = Depends(get_db), cu
     },
     response_description="List of tests."
 )
-def get_instructor_tests(instructor_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(require_role("instructor"))):
+async def get_instructor_tests(
+    instructor_id: int = Path(..., description="The ID of the instructor"),
+    db: AsyncSession = Depends(get_async_db),
+    current_user: models.User = Depends(require_role("instructor"))
+):
     """Get tests managed by an instructor."""
     if current_user.id != instructor_id:
-        raise HTTPException(status_code=403, detail="Instructors can only access their own tests.")
-    tests = instructor_service.get_instructor_tests(db, instructor_id)
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Instructors can only access their own tests.")
+    
+    tests = await instructor_service.get_instructor_tests_async(db, instructor_id)
+    
     return [
         {"id": t.id, "name": t.name, "batch_id": t.batch_id, "scheduled_at": t.scheduled_at} for t in tests
     ]
@@ -80,15 +92,18 @@ def get_instructor_tests(instructor_id: int, db: Session = Depends(get_db), curr
     },
     response_description="Bulk student upload results."
 )
-def bulk_add_students_instructor(
-    instructor_id: int,
+async def bulk_add_students_instructor(
     req: BulkStudentUploadRequest,
-    db: Session = Depends(get_db),
+    instructor_id: int = Path(..., description="The ID of the instructor"),
+    db: AsyncSession = Depends(get_async_db),
     current_user: models.User = Depends(require_role("instructor"))
 ):
+    """Bulk add students to instructor batches."""
     if not current_user.instructor or current_user.instructor.id != instructor_id:
-        raise HTTPException(status_code=403, detail="Instructors can only upload to their own batches.")
-    results = student_service.bulk_student_upload(db, req.students, instructor_id=instructor_id)
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Instructors can only upload to their own batches.")
+    
+    results = await student_service.bulk_student_upload_async(db, req.students, instructor_id=instructor_id)
+    
     return {"results": results}
 
 @router.post(
@@ -103,13 +118,16 @@ def bulk_add_students_instructor(
     },
     response_description="Bulk question upload results."
 )
-def bulk_add_questions_instructor(
-    instructor_id: int,
+async def bulk_add_questions_instructor(
     req: BulkQuestionUploadRequest,
-    db: Session = Depends(get_db),
+    instructor_id: int = Path(..., description="The ID of the instructor"),
+    db: AsyncSession = Depends(get_async_db),
     current_user: models.User = Depends(require_role("instructor"))
 ):
+    """Bulk add questions to instructor's tests."""
     if not current_user.instructor or current_user.instructor.id != instructor_id:
-        raise HTTPException(status_code=403, detail="Instructors can only upload to their own tests.")
-    results = test_service.bulk_question_upload(db, req.questions, instructor_id=instructor_id)
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Instructors can only upload to their own tests.")
+    
+    results = await test_service.bulk_question_upload_async(db, req.questions, instructor_id=instructor_id)
+    
     return {"results": results}

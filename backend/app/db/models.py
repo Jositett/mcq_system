@@ -12,6 +12,7 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     is_active = Column(Boolean, default=True)
     role = Column(String, nullable=False)
+    profile_picture = Column(String, nullable=True)  # Path to profile picture file
     instructor = relationship('Instructor', back_populates='user', uselist=False)
     student = relationship('Student', back_populates='user', uselist=False)
     face_images = relationship('FaceImage', back_populates='user', cascade='all, delete-orphan')
