@@ -73,18 +73,20 @@ export default function AdminUsers({ token }) {
                   <th className="border px-3 py-2">Username</th>
                   <th className="border px-3 py-2">Email</th>
                   <th className="border px-3 py-2">Role</th>
+                  <th className="border px-3 py-2">Gender</th>
                   <th className="border px-3 py-2">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {users.length === 0 ? (
-                  <tr><td className="border px-3 py-2 text-center" colSpan={4}>No users found.</td></tr>
+                  <tr><td className="border px-3 py-2 text-center" colSpan={5}>No users found.</td></tr>
                 ) : (
                   users.map((user) => (
                     <tr key={user.id}>
                       <td className="border px-3 py-2">{user.username}</td>
                       <td className="border px-3 py-2">{user.email}</td>
                       <td className="border px-3 py-2 capitalize">{user.role}</td>
+                      <td className="border px-3 py-2 capitalize">{user.gender || '-'}</td>
                       <td className="border px-3 py-2">
                         <button
                           onClick={() => handleDelete(user)}

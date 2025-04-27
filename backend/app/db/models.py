@@ -9,6 +9,10 @@ class User(Base):
     username = Column(String, unique=True, index=True, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
     full_name = Column(String)
+    phone = Column(String, nullable=True)
+    department = Column(String, nullable=True)
+    bio = Column(Text, nullable=True)
+    gender = Column(String, nullable=True)  # <-- Added gender field
     hashed_password = Column(String, nullable=False)
     is_active = Column(Boolean, default=True)
     role = Column(String, nullable=False)

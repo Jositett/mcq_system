@@ -1,6 +1,6 @@
 import pytest
 import asyncio
-from httpx import AsyncClient
+from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from app.main import app
@@ -8,12 +8,14 @@ from app.db import models
 from app.db.session import get_async_db
 from app.db.migrations_core import run_migrations_async
 import os
+import builtins
 
 DATABASE_URL = os.getenv("TEST_DATABASE_URL", "sqlite+aiosqlite:///./test.db")
 
 # Create async engine and session for testing
 test_engine = create_async_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine, class_=AsyncSession)
+builtins.AsyncSessionLocal = TestingSessionLocal
 
 @pytest.fixture(scope="session")
 def event_loop():
@@ -42,6 +44,6 @@ async def async_db():
 async def async_client(async_db, setup_db):
     # Override dependency
     app.dependency_overrides[get_async_db] = lambda: async_db
-    async with AsyncClient(app=app, base_url="http://test") as ac:
+    async with AsyncClient(transport=ASGITransport(app), base_url="http://test") as ac:
         yield ac
     app.dependency_overrides.clear()

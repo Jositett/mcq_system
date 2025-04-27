@@ -162,14 +162,20 @@ uvicorn app.main:app --reload
   - Profile and optimize async DB queries, caching, and bottlenecks
 - [ ] **Security Review:**
   - Pen-test endpoints, review JWT handling, and RBAC enforcement
+- [ ] **Convert Services to async/await:**
+  - Convert all business logic and service functions to async/await for full async support
+- [ ] **API Versioning:**
+  - Implement version prefixes and strategy (e.g., v1) for all endpoints
+- [ ] **Health Checks:**
+  - Add liveness/readiness endpoints and monitoring middleware
 
 ### Frontend (Tasks)
 
-- [ ] **UX Polish & Accessibility:**
+- [x] **UX Polish & Accessibility:**
   - Finalize responsive layouts, keyboard navigation, and ARIA labels
-- [ ] **Test Coverage:**
+- [x] **Test Coverage:**
   - Add/expand Jest and React Testing Library tests for all core components
-- [ ] **API Error Handling:**
+- [x] **API Error Handling:**
   - Improve user feedback on API/network errors
 - [ ] **Dashboard Analytics:**
   - Enhance charts/graphs for results and attendance analytics

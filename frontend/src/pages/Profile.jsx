@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { updateUserProfile } from "../store/authSlice";
+import { updateUserProfile } from "../features/authSlice";
 import { userApi } from "../api";
 
 export default function Profile() {
@@ -12,7 +12,8 @@ export default function Profile() {
     email: "",
     phone: "",
     department: "",
-    bio: ""
+    bio: "",
+    gender: ""
   });
   const [profileImage, setProfileImage] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
@@ -27,11 +28,12 @@ export default function Profile() {
         email: user.email || "",
         phone: user.phone || "",
         department: user.department || "",
-        bio: user.bio || ""
+        bio: user.bio || "",
+        gender: user.gender || ""
       });
       
-      if (user.profileImage || user.profile_image) {
-        setPreviewUrl(user.profileImage || user.profile_image);
+      if (user.profile_picture) {
+        setPreviewUrl(user.profile_picture);
       }
     }
   }, [user]);
@@ -63,24 +65,25 @@ export default function Profile() {
     
     try {
       const formDataToSend = new FormData();
-      
-      // Append text fields
-      Object.keys(formData).forEach(key => {
-        if (formData[key]) {
-          formDataToSend.append(key, formData[key]);
-        }
-      });
-      
-      // Append profile image if exists
+      // Map fields to API snake_case
+      if (formData.fullName) formDataToSend.append("full_name", formData.fullName);
+      if (formData.email) formDataToSend.append("email", formData.email);
+      if (formData.phone) formDataToSend.append("phone", formData.phone);
+      if (formData.department) formDataToSend.append("department", formData.department);
+      if (formData.bio) formDataToSend.append("bio", formData.bio);
+      if (formData.gender) formDataToSend.append("gender", formData.gender);
+      // Append profile image
       if (profileImage) {
-        formDataToSend.append("profileImage", profileImage);
+        formDataToSend.append("profile_picture", profileImage);
       }
-      
       const response = await userApi.updateProfile(formDataToSend);
       
       if (response.data) {
         // Update Redux store with new user data
         dispatch(updateUserProfile(response.data));
+        if (response.data.profile_picture) {
+          setPreviewUrl(response.data.profile_picture);
+        }
         setMessage({ 
           type: "success", 
           text: "Profile updated successfully!"
@@ -195,6 +198,24 @@ export default function Profile() {
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
                 />
+              </div>
+              <div>
+                <label htmlFor="gender" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Gender
+                </label>
+                <select
+                  id="gender"
+                  name="gender"
+                  value={formData.gender}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
+                >
+                  <option value="">Select...</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                  <option value="prefer_not_to_say">Prefer not to say</option>
+                </select>
               </div>
             </div>
             

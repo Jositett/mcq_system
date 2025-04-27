@@ -71,16 +71,19 @@ app = FastAPI(
 app.openapi = lambda: custom_openapi(app)
 
 # Startup event to run database migrations
+from app.core.alembic_runner import run_alembic_upgrade
+
 @app.on_event("startup")
 async def startup_event():
-    """Run database migrations on startup."""
+    """Run Alembic migrations on startup in a thread pool."""
+    import asyncio
     logger.info("Running startup tasks...")
+    loop = asyncio.get_event_loop()
     try:
-        # Run database migrations
-        await init_db_async()
-        logger.info("Database migrations completed successfully")
+        await loop.run_in_executor(None, run_alembic_upgrade)
+        logger.info("Alembic migrations completed successfully")
     except Exception as e:
-        logger.error(f"Error running database migrations: {str(e)}")
+        logger.error(f"Error running Alembic migrations: {str(e)}")
         # Don't raise the exception to allow the app to start even if migrations fail
         # This is useful in development environments
 

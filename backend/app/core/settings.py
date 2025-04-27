@@ -10,6 +10,10 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "YOUR_SECRET_KEY"  # Default will be overridden by env var
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    # Alias JWT settings for compatibility
+    JWT_SECRET: str = SECRET_KEY
+    JWT_ALGORITHM: str = ALGORITHM
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = ACCESS_TOKEN_EXPIRE_MINUTES
     FRONTEND_URL: str = "http://localhost:5173"
     
     # Database
@@ -30,6 +34,10 @@ class Settings(BaseSettings):
     
     # File storage
     UPLOAD_DIR: str = "uploads"
+    
+    # Rate limiting
+    RATE_LIMIT: int = 100  # requests per window
+    RATE_WINDOW: int = 60  # time window in seconds
     
     class Config:
         env_file = ".env"

@@ -62,4 +62,39 @@ A FastAPI backend for facial recognition-based attendance and MCQ management.
 
 ---
 
+## User Profile Fields (API)
+
+User-related endpoints (`/api/auth/register`, `/api/users/`, etc.) now support the following fields:
+
+- `full_name` (string, optional)
+- `email` (string, required)
+- `phone` (string, optional)
+- `department` (string, optional)
+- `bio` (string, optional)
+- `gender` (string, required for registration, optional for update)
+  - Allowed values: `male`, `female`, `other`
+  - Any other value will be rejected with a validation error.
+
+### Example (JSON)
+
+```json
+{
+  "username": "johndoe",
+  "email": "john@example.com",
+  "password": "yourpassword",
+  "full_name": "John Doe",
+  "phone": "+123456789",
+  "department": "Physics",
+  "bio": "Student at XYZ University",
+  "gender": "male"
+}
+```
+
+### Validation
+
+- The `gender` field only accepts `male`, `female`, or `other`.
+- All endpoints returning user data will now include these fields.
+
+---
+
 See `GUIDE.md` for full architecture, roadmap, and project structure.

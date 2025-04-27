@@ -7,15 +7,23 @@ class UserBase(BaseModel):
     username: str
     email: EmailStr
     full_name: Optional[str] = None
+    phone: Optional[str] = None
+    department: Optional[str] = None
+    bio: Optional[str] = None
     is_active: bool = True
     role: str
     profile_picture: Optional[str] = None
 
 class UserCreate(UserBase):
+    gender: Optional[str] = None
     password: str
 
 class UserUpdate(BaseModel):
     full_name: Optional[str] = None
+    phone: Optional[str] = None
+    department: Optional[str] = None
+    bio: Optional[str] = None
+    gender: Optional[str] = None
     password: Optional[str] = None
     profile_picture: Optional[str] = None
 

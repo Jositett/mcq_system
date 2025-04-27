@@ -29,6 +29,10 @@ async def create_user_async(db: AsyncSession, user: UserCreate) -> Optional[mode
         username=user.username,
         email=user.email,
         full_name=user.full_name,
+        phone=user.phone,
+        department=user.department,
+        bio=user.bio,
+        gender=user.gender,
         hashed_password=hashed_password,
         role=user.role,
         is_active=True,
@@ -88,11 +92,18 @@ async def update_user_async(db: AsyncSession, user_id: int, user_data: UserUpdat
     
     # Update fields
     update_data = user_data.dict(exclude_unset=True)
+    # Only update fields that exist on the model
+    allowed_fields = {"full_name", "phone", "department", "bio", "profile_picture", "hashed_password", "gender"}
+    update_data = {k: v for k, v in update_data.items() if k in allowed_fields or k == "password"}
     
     # Hash password if provided
     if "password" in update_data and update_data["password"]:
         update_data["hashed_password"] = security.get_password_hash(update_data["password"])
         del update_data["password"]
+    
+    # Skip update if no fields provided
+    if not update_data:
+        return user
     
     # Update user
     stmt = update(models.User).where(models.User.id == user_id).values(**update_data)

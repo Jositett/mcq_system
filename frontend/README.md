@@ -31,6 +31,28 @@ A React-based frontend for the MCQ Test & Attendance System, supporting both lig
 
 ---
 
+## User Profile & Registration Fields
+
+The following fields are present in the registration and profile forms:
+
+- Full Name
+- Email
+- Phone
+- Department
+- Bio
+- Gender (dropdown: only `male`, `female`, `other` allowed)
+- Profile Picture (optional)
+
+### Gender Field Validation
+
+The gender dropdown only allows selecting:
+
+- Male
+- Female
+- Other
+
+Attempting to submit any other value will result in a validation error.
+
 ## Tech Stack
 
 - React (with Vite)

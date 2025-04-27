@@ -75,6 +75,10 @@ async def create_user_async(db: AsyncSession, user_data: UserCreate) -> models.U
         username=user_data.username,
         email=user_data.email,
         full_name=user_data.full_name,
+        phone=getattr(user_data, 'phone', None),
+        department=getattr(user_data, 'department', None),
+        bio=getattr(user_data, 'bio', None),
+        gender=getattr(user_data, 'gender', None),
         hashed_password=hashed_password,
         role=user_data.role,
         is_active=user_data.is_active
@@ -188,6 +192,10 @@ def create_user(db: Session, user_data: UserCreate) -> models.User:
         username=user_data.username,
         email=user_data.email,
         full_name=user_data.full_name,
+        phone=getattr(user_data, 'phone', None),
+        department=getattr(user_data, 'department', None),
+        bio=getattr(user_data, 'bio', None),
+        gender=getattr(user_data, 'gender', None),
         hashed_password=hashed_password,
         role=user_data.role,
         is_active=user_data.is_active

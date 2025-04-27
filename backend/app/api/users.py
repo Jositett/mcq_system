@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db, get_async_db
 from app.schemas.user import UserResponse, UserUpdate
 from typing import List, Optional
+from fastapi import Form, File, UploadFile
 
 router = APIRouter()
 
@@ -176,3 +177,37 @@ async def delete_user(
     
     return {"detail": "User deleted"}
 
+@router.patch(
+    '/me',
+    response_model=UserResponse,
+    tags=["Users"],
+    summary="Update current user profile",
+    description="Update the profile of the currently authenticated user.",
+    responses={
+        200: {"description": "Profile updated successfully."},
+        401: {"description": "Not authenticated."}
+    },
+    response_description="Updated user profile."
+)
+async def update_current_user_profile(
+    full_name: Optional[str] = Form(None),
+    password: Optional[str] = Form(None),
+    profile_image: Optional[UploadFile] = File(None),
+    db: AsyncSession = Depends(get_async_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """Update the profile of the currently authenticated user."""
+    data = {}
+    if full_name is not None:
+        data['full_name'] = full_name
+    if password:
+        data['password'] = password
+    if profile_image:
+        file_path = await FileStorageService.save_upload_file(profile_image)
+        data['profile_picture'] = file_path
+
+    user_update = UserUpdate(**data)
+    user = await user_service.update_user_async(db, current_user.id, user_update)
+    if user.profile_picture:
+        user.profile_picture = FileStorageService.get_file_url(user.profile_picture)
+    return user
