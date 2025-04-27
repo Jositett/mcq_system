@@ -53,7 +53,12 @@
 - [x] All legacy MUI code removed.
 - [x] Error boundaries and user feedback improved.
 - [x] Tailwind v4+ and PostCSS config aligned with latest standards.
-- [ ] Ongoing: UX polish, accessibility, and responsive testing.
+- [x] UX polish, accessibility improvements completed
+- [x] Responsive testing and fixes implemented
+- [ ] WebSocket integration for real-time features (In Progress)
+- [ ] Final production build and deployment optimizations
+
+_Last updated: April 27, 2025_
 
 ---
 
@@ -143,48 +148,74 @@ uvicorn app.main:app --reload
 
 ### Backend (Tasks)
 
-- [ ] **Enhance Test Coverage:**
-  - Write and improve unit/integration tests for all async services and API endpoints
-  - Ensure database, authentication, and edge cases are covered
-- [ ] **Add Rate Limiting:**
-  - Implement rate limiting middleware to prevent abuse of API endpoints
-- [ ] **CI/CD Setup:**
-  - Configure GitHub Actions or similar for automated testing and deployment
-- [ ] **Production Caching:**
-  - Integrate Redis for distributed caching (optional, for scaling)
+- [x] **Theory Question Support:**
+  - Backend models and schemas implemented
+  - Theory grading endpoints added
+  - Test submission handling updated
+- [ ] **Service Layer Async Migration:**
+  - Convert remaining sync services to async/await pattern
+  - Update error handling for async context
+  - Add async caching decorators
+- [ ] **Rate Limiting & Security:**
+  - Implement rate limiting middleware using slowapi
+  - Add request size limits and validation
+  - Review and enhance RBAC implementation
 - [ ] **File Storage Service:**
-  - Abstract and implement file storage (local for dev, S3/Cloudinary for prod)
-- [ ] **API Documentation:**
-  - Continue refining OpenAPI docs and usage examples
-- [ ] **Database Migrations:**
-  - Finalize and document Alembic migration workflow
-- [ ] **Performance Optimization:**
-  - Profile and optimize async DB queries, caching, and bottlenecks
-- [ ] **Security Review:**
-  - Pen-test endpoints, review JWT handling, and RBAC enforcement
-- [ ] **Convert Services to async/await:**
-  - Convert all business logic and service functions to async/await for full async support
-- [ ] **API Versioning:**
-  - Implement version prefixes and strategy (e.g., v1) for all endpoints
-- [ ] **Health Checks:**
-  - Add liveness/readiness endpoints and monitoring middleware
+  - Create abstract storage interface
+  - Implement local and S3 storage providers
+  - Add file type validation and size limits
+- [ ] **Monitoring & Health:**
+  - Add /health endpoint with component checks
+  - Implement structured logging
+  - Add basic metrics collection
+- [ ] **Testing Enhancement:**
+  - Add theory question test cases
+  - Improve async test coverage
+  - Add performance benchmarks
 
 ### Frontend (Tasks)
 
-- [x] **UX Polish & Accessibility:**
-  - Finalize responsive layouts, keyboard navigation, and ARIA labels
-- [x] **Test Coverage:**
-  - Add/expand Jest and React Testing Library tests for all core components
-- [x] **API Error Handling:**
-  - Improve user feedback on API/network errors
+- [x] **Theory Question UI:**
+  - Theory question component implemented
+  - Test taking interface updated
+  - Results view enhanced for theory answers
 - [ ] **Dashboard Analytics:**
-  - Enhance charts/graphs for results and attendance analytics
-- [ ] **Profile & File Uploads:**
-  - Integrate with backend file storage endpoints
-- [ ] **Real-time Features:**
-  - Add WebSocket support for live test/attendance updates (optional)
-- [ ] **Deployment:**
-  - Prepare Vite build for production, configure environment variables
+  - Add results visualization charts
+  - Implement attendance analytics
+  - Create instructor statistics view
+- [ ] **File Upload Features:**
+  - Profile picture upload component
+  - File type validation and preview
+  - Progress indicator and error handling
+- [ ] **Real-time Updates:**
+  - WebSocket connection management
+  - Live test progress monitoring
+  - Real-time attendance updates
+- [ ] **Production Readiness:**
+  - Environment configuration
+  - Build optimization
+  - Deployment automation
+- [ ] **Testing Suite:**
+  - Unit tests for new components
+  - Integration tests for API flows
+  - End-to-end test scenarios
+
+### Infrastructure (Tasks)
+
+- [ ] **CI/CD Pipeline:**
+  - GitHub Actions workflow setup
+  - Automated testing and linting
+  - Docker containerization
+- [ ] **Monitoring Setup:**
+  - Error tracking integration
+  - Performance monitoring
+  - Usage analytics
+- [ ] **Documentation:**
+  - API documentation updates
+  - Deployment guides
+  - User manual creation
+
+### _Last updated: 2025-04-27_
 
 ---
 
@@ -371,20 +402,54 @@ FRONTEND_URL=http://localhost:5173
 
 | Area | Task | Status |
 |:-----|:-----|:------|
-| Authentication | Registration/Login | [ ] |
-| Authentication | JWT Security | [ ] |
+| Authentication | Registration/Login | [x] |
+| Authentication | JWT Security | [x] |
 | User | Profile Management | [ ] |
-| Instructor | Batch/Test Management | [ ] |
-| Test Management | MCQ, True/False, Theory | [ ] |
-| Test Management | Auto-generate Tests | [ ] |
-| Test Management | Auto-submit on timeout | [ ] |
+| Instructor | Batch/Test Management | [x] |
+| Test Management | MCQ, True/False, Theory | [x] |
+| Test Management | Auto-generate Tests | [x] |
+| Test Management | Auto-submit on timeout | [x] |
 | Attendance | Daily Check-in/Reporting | [ ] |
 | Birthday Notification | Notification system | [ ] |
-| Result Analytics | Graphical Reports | [ ] |
-| UI/UX | Dark/Light Mode | [ ] |
-| Security | Password Hashing (bcrypt) | [ ] |
+| Result Analytics | Graphical Reports | In Progress |
+| UI/UX | Dark/Light Mode | [x] |
+| Security | Password Hashing (bcrypt) | [x] |
 | Admin | User Management | [ ] |
-| File Upload | Profile Pictures | [ ] |
+| File Upload | Profile Pictures | In Progress |
+
+---
+
+## 📝 Next Steps & TODOs (Flet Frontend)
+
+### Current Sprint Priorities
+
+1. **Dashboard Analytics (In Progress)**
+   - Implement test performance visualizations
+   - Add attendance statistics charts
+   - Create instructor insights dashboard
+
+2. **File Storage Service (In Progress)**
+   - Implement profile picture upload system
+   - Add S3/local storage abstraction
+   - Integrate with user profile management
+
+3. **Real-time Features**
+   - WebSocket integration for test monitoring
+   - Live attendance updates
+   - Real-time grading notifications
+
+### Completed Features
+
+- ✅ Theory Question Implementation
+  - Backend models and API endpoints
+  - Frontend test taking interface
+  - Results view with grading support
+- ✅ Test Management Core Features
+  - MCQ, True/False, Theory questions
+  - Auto-submission on timeout
+  - Basic result analytics
+
+### _Last updated: 2025-04-27_ (Flet Frontend)
 
 ---
 
